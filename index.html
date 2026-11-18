@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style>
+<title>Лия Никонович — mono</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Martian+Mono:wdth,wght@75..112.5,400..800&display=swap">
+<style>
+/* Layout: one screen, five states walked with wheel / arrows / dots: About → Case 01–03 → CV.
+   Left: text. Right: the big cut-out head (About) or the case image. The head shrinks to the top-left corner outside About.
+   Bottom: a timeline with the dates of the current state. */
+:root{
+  --bg:#0A0A0A; --fg:#F1F1EE; --muted:#86867F; --line:#232321; --panel:#141413; --accent:#A4E22A; --on-accent:#0A0A0A; --shade:rgba(0,0,0,.82);
+  --display:"Martian Mono","IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --padl:max(32px,env(safe-area-inset-left,0px)); --padr:max(32px,env(safe-area-inset-right,0px));
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--mono);font-size:14px;line-height:1.55;overflow:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.mut{color:var(--muted)}
+.u{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+.u:hover{color:var(--accent)}
+mark{background:var(--accent);color:var(--on-accent);padding:0 .2em}
+
+.page{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:22px var(--padr) 22px var(--padl)}
+
+/* header */
+.hdr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px}
+.logo{font-family:var(--display);font-weight:800;font-stretch:112.5%;font-size:16px;letter-spacing:-.04em;text-transform:lowercase}
+.tabs{display:flex;border:2px solid var(--fg)}
+.tabs button{padding:7px 18px;font-size:13px}
+.tabs button+button{border-left:2px solid var(--fg)}
+.tabs button[aria-current="true"]{background:var(--fg);color:var(--bg)}
+.tabs button:not([aria-current="true"]):hover{background:var(--accent);color:var(--on-accent)}
+.hdr-r{justify-self:end;display:flex;align-items:center;gap:18px;font-size:13px}
+.dl{background:var(--fg);color:var(--bg);padding:6px 12px;text-decoration:none;border:2px solid var(--fg)}
+.dl:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+
+/* stage */
+.stage{position:relative;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:20px;min-height:0;padding-block:28px}
+.left{grid-column:1/6;position:relative;min-height:0;display:flex;flex-direction:column;justify-content:center}
+.right{grid-column:6/12;position:relative;min-height:0}
+.pager{grid-column:12/13;justify-self:end;align-self:center;display:grid;gap:10px}
+.pager button{display:flex;align-items:center;justify-content:flex-end;gap:10px;font-size:11px;color:var(--muted)}
+.pager button i{width:9px;height:9px;border:1.5px solid var(--fg);display:block;flex:none}
+.pager button span{opacity:0;transition:opacity .2s}
+.pager button:hover span,.pager button[aria-current="true"] span{opacity:1}
+.pager button[aria-current="true"]{color:var(--fg)}
+.pager button[aria-current="true"] i{background:var(--fg)}
+
+/* head */
+.head{position:absolute;z-index:2;transition:all .7s cubic-bezier(.7,0,.2,1);cursor:pointer}
+.head img{display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom}
+.s-about .head{left:calc(5/12*100% + 20px);right:calc(1/12*100% + 20px);top:28px;bottom:0}
+.head{left:0;top:12px;right:calc(100% - 96px);bottom:calc(100% - 112px)}
+
+/* panes */
+.pane{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:22px;opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .35s,transform .45s,visibility 0s .35s}
+.pane.on{opacity:1;visibility:visible;transform:none;transition:opacity .45s .2s,transform .55s .2s,visibility 0s}
+.left .pane{padding-top:0}
+.not-about .left .pane{padding-top:96px}
+h1,h2{font-family:var(--display);font-weight:800;letter-spacing:-.05em;margin:0;text-wrap:balance}
+h1{font-size:clamp(38px,5vw,76px);line-height:.92;font-stretch:112.5%;text-transform:lowercase}
+h2{font-size:clamp(20px,2vw,28px);line-height:1.18;font-stretch:87.5%;font-weight:700;letter-spacing:-.03em}
+.lede{margin:0;max-width:52ch}
+.lede.mut{max-width:56ch}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:10px;border:2px solid var(--fg);padding:9px 16px;text-decoration:none;font-size:13px;transition:background .15s,color .15s}
+.btn.solid{background:var(--fg);color:var(--bg)}
+.btn:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 18px;margin:0;font-size:13px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0}
+.eyebrow{font-size:12px;color:var(--muted);display:flex;gap:14px}
+.eyebrow b{color:var(--fg);font-weight:500}
+
+/* case visual */
+.shot{position:absolute;inset:0;display:flex;align-items:center;opacity:0;visibility:hidden;transform:translateX(24px);transition:opacity .35s,transform .45s,visibility 0s .35s}
+.shot.on{opacity:1;visibility:visible;transform:none;transition:opacity .5s .25s,transform .6s .25s,visibility 0s}
+.shot button{display:block;width:100%;background:var(--panel);border:2px solid var(--fg);position:relative;aspect-ratio:16/10;max-height:100%;overflow:hidden}
+.shot img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.shot button:hover img{transform:scale(1.02)}
+.shot .tag{position:absolute;left:-2px;top:-2px;background:var(--fg);color:var(--bg);font-size:12px;padding:4px 10px}
+.shot .zoom{position:absolute;right:12px;bottom:12px;background:var(--bg);border:2px solid var(--fg);font-size:12px;padding:4px 10px}
+.shot button:hover .zoom{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+
+/* CV table spans left + right */
+.cvpane{position:absolute;left:0;right:calc(1/12*100% + 20px);top:110px;bottom:0;display:flex;flex-direction:column;gap:16px;opacity:0;visibility:hidden;transition:opacity .35s,visibility 0s .35s;overflow:auto;scrollbar-width:thin}
+.s-cv .cvpane{opacity:1;visibility:visible;transition:opacity .5s .25s,visibility 0s}
+.s-cv .left,.s-cv .right{visibility:hidden}
+.cvt{width:100%;border-collapse:collapse;font-size:13px}
+.cvt th{text-align:left;font-weight:400;color:var(--muted);padding:0 16px 8px 0;border-bottom:2px solid var(--fg)}
+.cvt td{vertical-align:top;padding:12px 16px 12px 0;border-bottom:1px solid var(--line)}
+.cvt td:first-child{white-space:nowrap}
+.cvt b{font-weight:600}
+.cvt tr:hover td{background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.cv-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 32px;font-size:13px}
+
+/* timeline */
+.tl{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:16px;font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:-.02em}
+.tl .bar{position:relative;height:2px;background:var(--line)}
+.tl .fill{position:absolute;top:0;bottom:0;background:var(--fg);transition:left .7s cubic-bezier(.7,0,.2,1),right .7s cubic-bezier(.7,0,.2,1)}
+.tl .ticks{position:absolute;inset:-5px 0;pointer-events:none}
+.tl .ticks i{position:absolute;top:0;width:2px;height:12px;background:var(--fg)}
+.tl .ticks span{position:absolute;top:16px;transform:translateX(-50%);font-family:var(--mono);font-weight:400;font-size:11px;color:var(--muted);white-space:nowrap;letter-spacing:0}
+.hint{font-family:var(--mono);font-weight:400;font-size:11px;color:var(--muted);letter-spacing:0}
+
+/* case window */
+.ov{position:fixed;inset:0;z-index:50}
+.ov-back{position:absolute;inset:0;background:var(--shade);opacity:0;transition:opacity .3s}
+.ov.open .ov-back{opacity:1}
+.win{position:absolute;inset:max(24px,env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px));
+  background:var(--bg);border:2px solid var(--fg);display:grid;grid-template-rows:auto minmax(0,1fr);opacity:0;transform:translateY(14px);transition:opacity .3s,transform .4s cubic-bezier(.2,.8,.2,1)}
+.ov.open .win{opacity:1;transform:none}
+.win-bar{display:flex;justify-content:space-between;gap:16px;padding:10px 16px;border-bottom:2px solid var(--fg);font-size:12px}
+.win-bar button:hover{color:var(--accent)}
+.win-body{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:28px;padding:24px;min-height:0;overflow:auto}
+.gal{display:grid;grid-template-rows:minmax(0,1fr) auto;gap:12px;min-height:0}
+.gal-main{position:relative;background:var(--panel);border:2px solid var(--fg);min-height:260px;overflow:hidden}
+.gal-main img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.gal-nav{position:absolute;top:50%;margin-top:-20px;width:40px;height:40px;display:grid;place-items:center;background:var(--bg);border:2px solid var(--fg)}
+.gal-nav:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.gal-nav.prev{left:10px}.gal-nav.next{right:10px}
+.gal-count{position:absolute;left:10px;bottom:10px;background:var(--fg);color:var(--bg);font-size:12px;padding:2px 8px}
+.thumbs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.thumbs button{aspect-ratio:16/10;border:2px solid var(--line);overflow:hidden;background:var(--panel)}
+.thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.thumbs button[aria-current="true"]{border-color:var(--fg)}
+.info{display:flex;flex-direction:column;gap:18px;min-width:0}
+.info ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.info li{display:grid;grid-template-columns:28px 1fr}
+.info li::before{content:"->";color:var(--accent)}
+.acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto}
+
+/* narrow: everything stacks and scrolls */
+@media (max-width:900px),(max-height:600px){
+  body{overflow:auto}
+  .page{height:auto;padding:16px var(--padr) 24px var(--padl);--padl:max(16px,env(safe-area-inset-left,0px));--padr:max(16px,env(safe-area-inset-right,0px))}
+  .hdr{grid-template-columns:1fr;gap:12px}
+  .tabs,.pager,.tl{display:none}
+  .hdr-r{justify-self:start;flex-wrap:wrap}
+  .stage{display:flex;flex-direction:column;gap:40px;padding-block:20px}
+  .left,.right{display:contents}
+  .head,.s-about .head{position:static;width:min(100%,420px);height:auto;align-self:center;order:-1}
+  .pane,.shot,.cvpane,.s-cv .left,.s-cv .right{position:static;opacity:1;visibility:visible;transform:none;inset:auto}
+  .not-about .left .pane{padding-top:0}
+  .shot{margin-top:-24px}
+  .shot button{aspect-ratio:16/10}
+  .cvt thead{display:none}
+  .cvt,.cvt tbody,.cvt tr,.cvt td{display:block}
+  .cvt td{border:0;padding:2px 0}
+  .cvt tr{padding:12px 0;border-bottom:1px solid var(--line)}
+  .win{inset:0}
+  .win-body{grid-template-columns:1fr;padding:16px}
+  .gal-main{aspect-ratio:16/10;min-height:0}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
+/* ===== black + one accent: no boxed blocks, no radii; only tags carry a thin white outline ===== */
+*{border-radius:0!important}
+body{text-transform:none}
+.tag-o,.tabs button,.btn,.eyebrow>*,.kv dd.t{font-family:var(--mono)}
+/* tabs read as tags */
+.tabs{border:0;gap:8px}
+.tabs button{border:1.5px solid var(--fg)!important;padding:5px 12px;text-transform:uppercase;font-size:12px;letter-spacing:.04em}
+.tabs button[aria-current="true"]{background:var(--accent);border-color:var(--accent)!important;color:var(--on-accent)}
+.tabs button:not([aria-current="true"]):hover{background:none;color:var(--accent);border-color:var(--accent)!important}
+.hdr-r a{text-transform:uppercase;font-size:12px;letter-spacing:.04em}
+.dl{border:0;background:var(--accent);color:var(--on-accent)}
+.dl:hover{background:var(--fg);color:var(--bg)}
+/* buttons: primary = accent fill, secondary = tag outline */
+.btn{border:1.5px solid var(--fg);text-transform:uppercase;letter-spacing:.04em;font-size:12px;padding:8px 14px}
+.btn.solid{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn:hover{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.btn.solid:hover{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+/* eyebrow -> row of tags */
+.eyebrow{gap:6px;flex-wrap:wrap;color:var(--fg)}
+.eyebrow>*{border:1.5px solid var(--fg);padding:2px 8px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;font-weight:400}
+.eyebrow>b{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+h1{text-transform:uppercase}
+.logo{text-transform:uppercase}
+mark{background:var(--accent);color:var(--on-accent);padding:0 .15em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.lede{text-transform:uppercase;font-size:13px;letter-spacing:.02em;line-height:1.6}
+.lede.mut{text-transform:none;font-size:14px;letter-spacing:0}
+/* case visual: bare image, tag labels */
+.shot button{border:0;background:var(--panel)}
+.shot .tag{left:12px;top:12px;background:var(--accent);color:var(--on-accent);text-transform:uppercase;font-size:11px;letter-spacing:.04em;padding:3px 8px}
+.shot .zoom{border:1.5px solid var(--fg);background:var(--bg);text-transform:uppercase;font-size:11px;letter-spacing:.04em}
+.shot button:hover .zoom{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+/* pager: filled squares, no outlines */
+.pager button{text-transform:uppercase;letter-spacing:.04em}
+.pager button i{border:0;background:var(--line);width:10px;height:10px}
+.pager button:hover i{background:var(--muted)}
+.pager button[aria-current="true"] i{background:var(--accent)}
+.pager button[aria-current="true"]{color:var(--accent)}
+/* timeline */
+.tl{text-transform:uppercase}
+.tl .bar{background:var(--line)}
+.tl .fill{background:var(--accent)}
+.tl .ticks i{background:var(--muted)}
+.tl .ticks span{text-transform:uppercase;letter-spacing:.04em;font-size:10px}
+/* CV table: grey hairlines only */
+.cvt th{border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.04em;font-size:11px}
+.cvt td{border-bottom:1px solid var(--line)}
+.cvt td:first-child{color:var(--accent)}
+.cvt tr:hover td{background:var(--panel)}
+.cv-foot .u,.u{text-decoration-color:var(--muted)}
+.u:hover{color:var(--accent);text-decoration-color:var(--accent)}
+/* case window: black sheet, no frame */
+.win{border:0;background:var(--bg)}
+.win-bar{border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.04em;font-size:11px}
+.gal-main{border:0;background:var(--panel)}
+.gal-nav{border:1.5px solid var(--fg);background:var(--bg)}
+.gal-nav:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.gal-count{background:var(--accent);color:var(--on-accent)}
+.thumbs button{border:0;opacity:.4;position:relative}
+.thumbs button[aria-current="true"],.thumbs button:hover{opacity:1}
+.thumbs button[aria-current="true"]::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--accent)}
+.info li::before{color:var(--accent)}
+.kv dt{text-transform:uppercase;font-size:11px;letter-spacing:.04em;padding-top:2px}
+.head img{filter:none}
+@media (max-width:900px),(max-height:600px){ .eyebrow{gap:6px} }
+
+/* b/w pass: highlight and primary actions in white, green only on small markers */
+mark{background:var(--fg);color:var(--bg)}
+.btn.solid{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.btn.solid:hover,.btn:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.tabs button[aria-current="true"]{background:var(--fg);border-color:var(--fg)!important;color:var(--bg)}
+.dl{background:var(--fg);color:var(--bg)}
+.dl:hover{background:var(--accent);color:var(--on-accent)}
+.eyebrow>b{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.shot .tag,.gal-count{background:var(--fg);color:var(--bg)}
+.shot button:hover .zoom,.gal-nav:hover{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.thumbs button[aria-current="true"]::after{background:var(--fg)}
+
+/* tiles: chunky white action blocks with a big condensed label (ref: GO / ANOTHER DOOR) */
+.tiles{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:4px;max-width:560px}
+.tile{display:flex;align-items:center;gap:12px;background:var(--fg);color:var(--bg);padding:12px 14px;text-decoration:none;min-height:72px;transition:background .15s}
+.tile:hover{background:#C9C9C4}
+.tile svg{width:22px;height:22px;flex:none}
+.tile .tl-t{display:grid;gap:2px;min-width:0}
+.tile b{font-family:var(--display);font-stretch:75%;font-weight:800;font-size:17px;line-height:1;letter-spacing:-.03em;text-transform:uppercase}
+.tile small{font-size:11px;line-height:1.2;opacity:.65}
+.tile.big svg{width:34px;height:34px}
+.tile.big b{font-size:30px;letter-spacing:-.04em}
+.acts.tiles{grid-template-columns:1.4fr 1fr;max-width:none;margin-top:auto}
+.cvpane .tiles{max-width:720px}
+/* CV: five jobs, results read in seconds */
+.jobs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0}
+.job-c{display:flex;flex-direction:column;gap:6px;padding:0 20px 0 0;min-width:0}
+.job-c+.job-c{padding-left:20px;border-left:1px solid var(--line)}
+.jc-when{font-size:11px;color:var(--accent);letter-spacing:.02em}
+.jc-co{font-family:var(--display);font-stretch:75%;font-weight:800;font-size:20px;line-height:1.05;text-transform:uppercase;letter-spacing:-.03em}
+.jc-role{font-size:12px;color:var(--muted);margin-bottom:10px}
+.jc-stat{display:grid;gap:2px;padding:12px 0;border-top:1px solid var(--line)}
+.jc-stat b{font-family:var(--display);font-stretch:75%;font-weight:800;font-size:clamp(30px,3.2vw,48px);line-height:.95;letter-spacing:-.05em}
+.jc-stat span{font-size:12px;line-height:1.35;color:var(--muted)}
+.cvpane{gap:28px;top:132px}
+@media (max-width:900px),(max-height:600px){
+  .tiles,.acts.tiles{grid-template-columns:1fr 1fr;max-width:none}
+  .tiles .tile.big{grid-column:1/-1}
+  .jobs{grid-template-columns:1fr 1fr;gap:28px 0}
+  .job-c:nth-child(odd){padding-left:0;border-left:0}
+  .job-c:first-child{grid-column:1/-1;padding-right:0}
+  .job-c:nth-child(even){padding-left:0;border-left:0;padding-right:16px}
+  .job-c:nth-child(odd):not(:first-child){padding-left:16px;border-left:1px solid var(--line)}
+}
+
+/* ===== case grid v2: text 1–4, works 5–11, screenshots uncropped ===== */
+.not-about .left{grid-column:1/5}
+.right{grid-column:5/12}
+.shot{flex-direction:column;align-items:stretch;justify-content:center;gap:8px;padding-top:8px}
+.shot-main{position:relative;display:block;width:100%;flex:0 1 auto;min-height:0;aspect-ratio:16/9;max-height:calc(100% - 96px);background:var(--panel);overflow:hidden}
+.shot-main img{width:100%;height:100%;object-fit:contain;display:block;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.shot-main:hover img{transform:scale(1.015)}
+.shot-main .tag{position:absolute;left:0;top:0;background:var(--fg);color:var(--bg);text-transform:uppercase;font-size:11px;letter-spacing:.04em;padding:4px 8px}
+.shot-main .zoom{position:absolute;right:0;bottom:0;background:var(--fg);color:var(--bg);border:0;text-transform:uppercase;font-size:11px;letter-spacing:.04em;padding:6px 10px}
+.shot-th{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;flex:none}
+.shot-th button{position:relative;aspect-ratio:16/9;background:var(--panel);overflow:hidden;opacity:.45;transition:opacity .2s}
+.shot-th button img{width:100%;height:100%;object-fit:cover;display:block}
+.shot-th button span{position:absolute;left:0;top:0;background:var(--bg);font-size:10px;padding:1px 5px}
+.shot-th button:hover,.shot-th button[aria-current="true"]{opacity:1}
+.shot-th button[aria-current="true"]::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--fg)}
+.left .pane h2{font-size:clamp(20px,1.9vw,27px)}
+/* case window: text sticks on the left, every screenshot full width on the right */
+.win-body{grid-template-columns:minmax(300px,4fr) minmax(0,8fr);gap:40px;padding:0 24px;align-items:start}
+.info{position:sticky;top:0;padding-block:24px;max-height:calc(100vh - 110px);overflow:auto;scrollbar-width:none}
+.info .lede{text-transform:none;font-size:15px;line-height:1.55;letter-spacing:0;max-width:46ch}
+.info li{font-size:14px;line-height:1.5}
+.info h2{font-size:clamp(22px,2vw,30px)}
+.strip{display:grid;gap:12px;padding-block:24px}
+.strip figure{margin:0;position:relative;background:var(--panel)}
+.strip img{display:block;width:100%;height:auto}
+.strip figcaption{position:absolute;left:0;top:0;background:var(--fg);color:var(--bg);font-size:11px;padding:3px 8px}
+@media (max-width:900px),(max-height:600px){
+  .shot{padding-top:0}
+  .shot-main{max-height:none}
+  .win-body{grid-template-columns:1fr;padding:0 16px;gap:0}
+  .info{position:static;max-height:none;padding-bottom:8px}
+}
+
+/* fit the frame to the screenshot itself: no letterbox bars */
+.shot-main{aspect-ratio:auto;max-height:none;background:none;width:fit-content;max-width:100%;align-self:flex-start;flex:none}
+.shot-main img{width:auto;height:auto;max-width:100%;max-height:calc(100vh - 340px);object-fit:initial}
+.shot-th{width:100%}
+.acts.tiles{grid-template-columns:1fr 1fr}
+.acts .tile.big b{font-size:22px}
+.acts .tile.big svg{width:26px;height:26px}
+@media (max-width:900px),(max-height:600px){ .shot-main img{max-height:none} }
+.shot .shot-main{background:none;width:fit-content;max-width:100%;aspect-ratio:auto;border:0}
+
+/* keep text, works and pager on one grid row even where columns overlap */
+.stage>.left,.stage>.right,.stage>.pager{grid-row:1}
+.hdr,.tl{position:relative;z-index:5}
+.head img{pointer-events:none}
+@media (max-width:900px),(max-height:600px){
+  .win-body{display:flex;flex-direction:column;align-items:stretch;gap:0;padding:0 16px 24px}
+  .info,.strip{grid-row:auto;grid-column:auto;width:100%}
+  .info{flex:none;overflow:visible;max-height:none;padding-top:16px}
+  .strip{flex:none}
+  .strip{padding-top:8px}
+  .win-bar{position:sticky;top:0;z-index:2;background:var(--bg)}
+}
+@media (hover:none){ .k-esc{display:none} }
+
+/* ===== hierarchy: one white primary per screen, secondary = text link with a 45° arrow, tags = outline only ===== */
+.acts-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 28px}
+.acts-row .tile.big{min-width:250px}
+.acts-row.acts{margin-top:auto}
+.ghost{display:inline-flex;align-items:center;gap:8px;color:var(--fg);text-decoration:none;text-transform:uppercase;font-size:12px;letter-spacing:.06em;padding:10px 0;border-bottom:1.5px solid transparent;transition:color .15s,border-color .15s}
+.ghost svg{width:16px;height:16px;flex:none}
+.ghost:hover{color:var(--accent);border-color:var(--accent)}
+.dl{display:inline-flex;align-items:center;gap:8px}
+.dl .ico{width:15px;height:15px;flex:none}
+/* tags never filled: they are labels, not buttons */
+.eyebrow>b{background:none;border-color:var(--fg);color:var(--fg);font-weight:500}
+.eyebrow>*{border-color:color-mix(in srgb,var(--fg) 55%,transparent);color:color-mix(in srgb,var(--fg) 80%,transparent)}
+.eyebrow>b{border-color:var(--fg);color:var(--fg)}
+/* labels on images: dark chips, not white */
+.shot-main .tag,.strip figcaption,.shot .tag{background:var(--bg);color:var(--fg)}
+.shot-main .zoom{background:var(--bg);color:var(--fg)}
+/* about: one friendly paragraph */
+.lede.intro{text-transform:none;font-size:16px;line-height:1.6;letter-spacing:0;color:color-mix(in srgb,var(--fg) 82%,transparent);max-width:44ch}
+@media (max-width:900px),(max-height:600px){ .acts-row .tile.big{min-width:0;flex:1 1 100%} }
+.strip figure{display:flex;justify-content:center}
+.strip img{width:auto;max-width:100%;max-height:calc(100vh - 140px)}
+@media (max-width:900px),(max-height:600px){ .strip img{max-height:none;width:100%} }
+</style>
+
+</head>
+<body>
+<div class="page s-about" id="page">
+  <header class="hdr">
+    <span class="logo">лия никонович</span>
+    <nav class="tabs" aria-label="Разделы">
+      <button type="button" data-go="0">Обо мне</button>
+      <button type="button" data-go="1">Кейсы</button>
+      <button type="button" data-go="cv">CV</button>
+    </nav>
+    <div class="hdr-r">
+      <a class="u" href="https://t.me/L_Nikon" target="_blank" rel="noopener">Telegram</a>
+      <a class="u" href="https://burly-mind-310.notion.site/CV-29d1e54c713981b99c2ace859ee1fc17" target="_blank" rel="noopener">Notion</a>
+      <a class="u" href="https://www.figma.com/design/DtoJ6T8ChYwChkZo2UR7l3/?node-id=2449-600" target="_blank" rel="noopener">Figma</a>
+      <a class="dl" href="cv-lia-nikonovich.pdf" download="CV_Лия_Никонович.pdf" aria-label="Скачать CV в PDF"><svg viewBox="0 0 24 24" aria-hidden="true" class="ico"><path d="M12 3v13M6 10l6 6 6-6M4 21h16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"/></svg><span>CV.pdf</span></a>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <button class="head" id="head" type="button" aria-label="Обо мне"><img src="face-hq.webp" alt="Лия Никонович"></button>
+
+    <div class="left" id="left">
+      <section class="pane on" data-pane="0">
+        <span class="eyebrow"><b>Продуктовый дизайнер</b><span>5 лет</span><span>B2B / B2C</span></span>
+        <h1>лия<br>никонович</h1>
+        <p class="lede intro">Сейчас — MentalGrowth: воронки для wellness-продуктов и конструктор воронок. До этого FinTech, EdTech, MedTech, e-commerce и благотворительность: HH.ru, Konvi, Bananadrama.</p>
+        <div class="acts-row">
+          <button class="tile big" type="button" data-go="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h15M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"/></svg><span class="tl-t"><b>Кейсы</b><small id="cases-count">кейсы · 2025</small></span></button>
+          <a class="ghost" href="https://t.me/L_Nikon" target="_blank" rel="noopener"><span>Telegram @L_Nikon</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"/></svg></a>
+        </div>
+      </section>
+      <!-- case panes are rendered from CASES -->
+    </div>
+
+    <div class="right" id="right">
+
+    </div>
+
+    <div class="cvpane" id="cvpane" aria-label="CV" style="order:20">
+      <div class="jobs">
+        <article class="job-c"><span class="jc-when">01.2026 — сейчас</span><span class="jc-co">MentalGrowth</span><span class="jc-role">Product Designer · удалённо</span><div class="jc-stat"><b>15+</b><span>воронок в Figma для wellness и психологии</span></div><div class="jc-stat"><b>0→1</b><span>внутренний конструктор маркетинговых воронок</span></div></article>
+        <article class="job-c"><span class="jc-when">02.2025 — 11.2025</span><span class="jc-co">Студия «Луч»</span><span class="jc-role">Продуктовый дизайнер</span><div class="jc-stat"><b>3</b><span>продукта: HH.ru, Bananadrama, GuruGrow</span></div><div class="jc-stat"><b>HH.ru</b><span>редизайн рейтинга: флоу, прототипы, все экраны</span></div></article>
+        <article class="job-c"><span class="jc-when">08.2024 — 10.2024</span><span class="jc-co">Monochromatic</span><span class="jc-role">Продуктовый дизайнер</span><div class="jc-stat"><b>Konvi</b><span>FinTech для долевого инвестирования</span></div><div class="jc-stat"><b>2</b><span>платформы: UI веба и UX-логика mobile + web</span></div></article>
+        <article class="job-c"><span class="jc-when">10.2023 — 08.2024</span><span class="jc-co">NDA</span><span class="jc-role">Продуктовый дизайнер, UX/UI</span><div class="jc-stat"><b>100+</b><span>кастомных иллюстраций для двух продуктов</span></div><div class="jc-stat"><b>3</b><span>страны: Казахстан, Канада, Нидерланды</span></div></article>
+        <article class="job-c"><span class="jc-when">11.2021 — 08.2022</span><span class="jc-co">Cropfleet</span><span class="jc-role">Продуктовый дизайнер, UX/UI</span><div class="jc-stat"><b>0→1</b><span>визуальная концепция и все экраны</span></div><div class="jc-stat"><b>UX</b><span>тесты: сценарии, интервью, опросы</span></div></article>
+      </div>
+      <div class="cv-foot">
+        <span><span class="mut">Навыки:</span> UX/UI, прототипирование, дизайн-системы, UX-исследования и интервью, UX-редактура, управление проектированием, вайбкодинг (Codex), HTML и CSS</span>
+        <span><span class="mut">Языки:</span> русский, английский B1+</span>
+      </div>
+      <div class="acts-row"><a class="tile big" href="cv-lia-nikonovich.pdf" download="CV_Лия_Никонович.pdf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v14M5 11l7 7 7-7M4 21h16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"/></svg><span class="tl-t"><b>Скачать CV</b><small>PDF · 2 стр. · для HR</small></span></a><a class="ghost" href="https://burly-mind-310.notion.site/CV-29d1e54c713981b99c2ace859ee1fc17" target="_blank" rel="noopener"><span>CV в Notion</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"/></svg></a><a class="ghost" href="https://t.me/L_Nikon" target="_blank" rel="noopener"><span>Telegram @L_Nikon</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"/></svg></a></div>
+    </div>
+
+    <nav class="pager" id="pager" aria-label="Экраны"></nav>
+  </main>
+
+  <footer class="tl" id="tl">
+    <span id="tl-a">11 2021</span>
+    <div class="bar"><span class="fill" id="tl-fill"></span><span class="ticks" id="ticks"></span></div>
+    <span id="tl-b">сейчас</span>
+  </footer>
+</div>
+
+<div class="ov" id="pm" role="dialog" aria-modal="true" aria-labelledby="pm-title" hidden>
+  <div class="ov-back" data-close></div>
+  <div class="win">
+    <div class="win-bar"><span id="pm-path"></span><button type="button" data-close id="pm-x"><span class="k-esc">[esc] </span>закрыть ✕</button></div>
+    <div class="win-body">
+      <div class="info">
+        <span class="eyebrow" id="pm-eyebrow"></span>
+        <h2 id="pm-title"></h2>
+        <p class="lede" id="pm-lead" style="margin:0"></p>
+        <ul id="pm-list"></ul>
+        <dl class="kv" id="pm-meta"></dl>
+        <div class="acts-row acts"><button class="tile big" id="pm-next" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h15M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"/></svg><span class="tl-t"><b id="pm-next-t"></b><small>следующий кейс</small></span></button><a class="ghost" id="pm-link" target="_blank" rel="noopener"><span>Кейс в Notion</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"/></svg></a></div>
+      </div>
+      <div class="strip" id="strip"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ALL_CASES = [
+  { id:'konvi', hidden:true, title:'Konvi', kind:'FinTech · mobile + web', from:'08 2024', to:'10 2024', studio:'Monochromatic',
+    head:'Улучшила UX-логику и UI платформы, где инвесторам <mark>не хватало данных</mark> для решения о сделке',
+    imgs:['img/konvi-1.jpg'],
+    lead:'Платформа для долевого инвестирования в альтернативные активы: коллекционные авто, часы, искусство.',
+    list:['Информация об объектах была неструктурированной, поэтому многие инвесторы отказывались от сделок.','Не было уведомлений и аналитики для выбора момента продажи актива.','Вторичная проблема: низкая узнаваемость бренда.'],
+    meta:[['роль','продуктовый дизайнер'],['студия','Monochromatic'],['задачи','UX-логика, UI, UX-редактура, SMM']],
+    link:'https://burly-mind-310.notion.site/Konvi-1831e54c713981228548cc545cb8d05a' },
+  { id:'hh', title:'HH.ru', kind:'HR-tech · web + mobile', from:'02 2025', to:'11 2025', studio:'«Луч»',
+    head:'Перепроектировала рейтинг работодателей hh.ru: <mark>от поиска компании</mark> до отданного голоса',
+    imgs:['img/hh-1.jpg','img/hh-2.jpg','img/hh-3.jpg'],
+    lead:'Редизайн рейтинга работодателей для соискателя: поиск компаний, фильтр по отраслям, голосование и «Мои голоса».',
+    list:['Разобрала сценарии соискателей и собрала логику точек входа, переходов и действий.','Гипотеза: понятная навигация и сниппеты повысят долю завершённых голосований.','Ясные правила: до 3 компаний в отрасли, за свою голосовать нельзя.','Прототипы проверила на реальных соискателях.'],
+    meta:[['роль','продуктовый дизайнер'],['студия','«Луч»'],['задачи','флоу, навигация, прототипы, редизайн']],
+    link:'https://burly-mind-310.notion.site/HH-2ac1e54c713980c69cb5c4dc92cbb5c8' },
+  { id:'bananadrama', title:'Bananadrama', kind:'E-commerce · beauty', from:'02 2025', to:'11 2025', studio:'«Луч»',
+    head:'Собрала навигацию и <mark>дизайн-систему</mark> для магазина корейской косметики',
+    imgs:['img/banana-1.jpg','img/banana-2.jpg','img/banana-3.jpg'],
+    lead:'Магазин косметики с медиа и персональной «рутиной» ухода. Сайт сейчас в разработке.',
+    list:['Навигация для новых клиентов, постоянных покупателей и специалистов.','Короткий путь от поиска товара до покупки без лишних кликов.','Дизайн-система: токены, кнопки, карточки, баннеры, паттерны для акций.','UX-редактура и voice & tone бренда.'],
+    meta:[['роль','продуктовый дизайнер'],['студия','«Луч»'],['задачи','навигация, UX, UI, дизайн-система']],
+    link:'https://burly-mind-310.notion.site/Bananadrama-e-commerce-2a91e54c713980ae8b5bfc5ff601ecdf' },
+  { id:'pragmatica', title:'Pragmatica UI', kind:'UI · mobile', from:'', to:'', studio:'Большая практика Pragmatica',
+    head:'UI-концепт приложения, где город открывается <mark>через двери</mark>: погода, места рядом и музыка заведения',
+    imgs:['img/prag-1.jpg?v=2','img/prag-2.jpg?v=2','img/prag-3.jpg'],
+    lead:'UI-работа на Большой практике Pragmatica: экран «home» с погодой и каруселью дверей и экран «place» с карточкой заведения.',
+    list:['Home: погода крупными цифрами (дождь, UV-индекс, закат) и прогноз на неделю.','Двери-карусель как навигация: «Knock to sneak a peek» ведёт к местам рядом.','Place: карточка кофейни с расстоянием, часами работы и ценой, превью треков заведения.','Крупные метрики и два действия внизу: «Another door» и «Go» с временем пешком.'],
+    meta:[['роль','UI-дизайнер'],['где','Большая практика Pragmatica'],['задачи','UI, визуальный язык, иконки']],
+    link:'' },
+];
+const CASES = ALL_CASES.filter(c => !c.hidden);
+{ const n = CASES.length, w = n % 10 === 1 && n % 100 !== 11 ? 'проект' : [2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100) ? 'проекта' : 'проектов';
+  const el = document.getElementById('cases-count'); if (el) el.textContent = `${n} ${w} · 2025`; }
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2,'0');
+const page = $('#page');
+
+/* build case panes + shots */
+CASES.forEach((c,i) => {
+  $('#left').insertAdjacentHTML('beforeend', `
+    <section class="pane" data-pane="${i+1}" style="order:${(i+1)*2}">
+      <span class="eyebrow"><b>${pad(i+1)} / ${pad(CASES.length)}</b><span>${c.kind}</span></span>
+      <h2>${c.head}</h2>
+      <p class="lede mut">${c.lead}</p>
+      <dl class="kv"><dt>студия</dt><dd>${c.studio}</dd>${c.from ? `<dt>период</dt><dd>${c.from} — ${c.to}</dd>` : ''}</dl>
+      <div class="acts-row"><button class="tile big" type="button" data-case="${i}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16" fill="none" stroke="currentColor" stroke-width="2.6"/></svg><span class="tl-t"><b>Подробнее</b><small>${c.imgs.length} изобр. · описание</small></span></button>${c.link ? `<a class="ghost" href="${c.link}" target="_blank" rel="noopener"><span>Кейс в Notion</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"/></svg></a>` : ''}</div>
+    </section>`);
+  $('#right').insertAdjacentHTML('beforeend', `
+    <div class="shot" data-pane="${i+1}" style="order:${(i+1)*2+1}">
+      <button class="shot-main" type="button" data-case="${i}" data-img="0" aria-label="Открыть кейс ${c.title}"><img src="${c.imgs[0]}" alt=""><span class="tag">${pad(i+1)} ${c.title}</span><span class="zoom">Открыть кейс +</span></button>
+      ${c.imgs.length > 1 ? `<div class="shot-th">${c.imgs.map((src,k) => `<button type="button" data-case="${i}" data-img="${k}" aria-label="Изображение ${k+1}"${k===0?' aria-current="true"':''}><img src="${src}" alt=""><span>${pad(k+1)}</span></button>`).join('')}</div>` : ''}
+    </div>`);
+});
+
+/* states */
+const STATES = [
+  { key:'about', label:'обо мне', a:'11 2021', b:'сейчас', range:[0,1] },
+  ...CASES.map((c,i) => c.from ? ({ key:'c'+i, label:c.title.toLowerCase(), a:c.from, b:c.to }) : ({ key:'c'+i, label:c.title.toLowerCase(), a:'Большая', b:'практика', range:[0,1], dim:true })),
+  { key:'cv', label:'cv', a:'11 2021', b:'сейчас', range:[0,1] }
+];
+/* timeline spans 11.2021 → 11.2025 */
+const T0 = 2021 + 10/12, T1 = 2026 + 10/12;
+const pos = s => { const [m,y] = s.split(' ').map(Number); return ((y + (m-1)/12) - T0) / (T1 - T0); };
+$('#ticks').innerHTML = [['11 2021','Cropfleet'],['10 2023','NDA'],['08 2024','Monochromatic'],['02 2025','«Луч»'],['01 2026','MentalGrowth']]
+  .map(([d,l]) => `<i style="left:${pos(d)*100}%"></i><span style="left:${Math.max(4,Math.min(96,pos(d)*100))}%">${l}</span>`).join('');
+$('#pager').innerHTML = STATES.map((s,i) => `<button type="button" data-go="${i}"><span>${s.label}</span><i></i></button>`).join('');
+
+let cur = 0;
+function go(n){
+  n = Math.max(0, Math.min(STATES.length-1, n)); cur = n;
+  const s = STATES[n];
+  page.classList.toggle('s-about', n === 0);
+  page.classList.toggle('not-about', n !== 0);
+  page.classList.toggle('s-cv', s.key === 'cv');
+  document.querySelectorAll('[data-pane]').forEach(el => el.classList.toggle('on', +el.dataset.pane === n));
+  document.querySelectorAll('.pager [data-go]').forEach(el => el.setAttribute('aria-current', +el.dataset.go === n));
+  const tab = n === 0 ? '0' : s.key === 'cv' ? 'cv' : '1';
+  document.querySelectorAll('.tabs [data-go]').forEach(el => el.setAttribute('aria-current', el.dataset.go === tab));
+  $('#tl-a').textContent = s.a; $('#tl-b').textContent = s.b;
+  const l = s.range ? 0 : pos(s.a), r = s.range ? 1 : pos(s.b);
+  $('#tl-fill').style.left = (l*100) + '%'; $('#tl-fill').style.right = ((1-r)*100) + '%';
+  if (s.dim) { $('#tl-fill').style.left = '0%'; $('#tl-fill').style.right = '100%'; }
+}
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]'); if (g) go(g.dataset.go === 'cv' ? STATES.length - 1 : +g.dataset.go);
+  const c = e.target.closest('[data-case]'); if (c) openCase(+c.dataset.case, +(c.dataset.img || 0));
+});
+$('#head').addEventListener('click', () => go(0));
+go(0);
+
+/* wheel / keys step through states (desktop only) */
+const narrow = () => matchMedia('(max-width:900px),(max-height:600px)').matches;
+let lock = 0;
+addEventListener('wheel', e => {
+  if (narrow() || current) return;
+  if (e.target.closest('.cvpane') && $('#cvpane').scrollHeight > $('#cvpane').clientHeight + 4) return;
+  const now = Date.now(); if (now < lock || Math.abs(e.deltaY) < 12) return;
+  lock = now + 750; go(cur + (e.deltaY > 0 ? 1 : -1));
+}, { passive:true });
+
+/* case window */
+let current = null, lastFocus = null, ci = 0, gi = 0;
+function show(el){ lastFocus = document.activeElement; current = el; el.hidden = false; page.inert = true;
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('open'))); setTimeout(() => $('#pm-x').focus(), 60); }
+function hide(){ if (!current) return; const el = current; current = null; page.inert = false; el.classList.remove('open');
+  setTimeout(() => el.hidden = true, 350); lastFocus && lastFocus.focus && lastFocus.focus(); }
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', hide));
+function fillCase(i){
+  ci = i; gi = 0; const c = CASES[i];
+  $('#pm-path').textContent = `~/cases/${pad(i+1)}_${c.id}`;
+  $('#pm-eyebrow').innerHTML = `<b>${pad(i+1)} / ${pad(CASES.length)}</b><span>${c.kind}</span>${c.from ? `<span>${c.from} — ${c.to}</span>` : ''}`;
+  $('#pm-title').innerHTML = c.head;
+  $('#pm-lead').textContent = c.lead;
+  $('#pm-list').innerHTML = c.list.map(t => `<li>${t.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</li>`).join('');
+  $('#pm-meta').innerHTML = c.meta.map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+  $('#pm-link').href = c.link || '#'; $('#pm-link').hidden = !c.link;
+  $('#pm-next-t').textContent = CASES[(i+1)%CASES.length].title;
+  $('#strip').innerHTML = c.imgs.map((src,k) => `<figure><img src="${src}" alt="${c.title}, изображение ${k+1} из ${c.imgs.length}" loading="lazy"><figcaption>${pad(k+1)} / ${pad(c.imgs.length)}</figcaption></figure>`).join('');
+  $('.win-body').scrollTop = 0;
+}
+function openCase(i, k = 0){
+  fillCase(i); if (!current) show($('#pm'));
+  if (k > 0) setTimeout(() => { const f = $('#strip').children[k]; f && f.scrollIntoView({ block:'start' }); }, 80);
+}
+$('#pm-next').addEventListener('click', () => { fillCase((ci+1) % CASES.length); go(ci+1); });
+/* hovering a thumb previews it in the big frame */
+document.querySelectorAll('.shot-th button').forEach(t => {
+  const swap = () => { const shot = t.closest('.shot'); shot.querySelector('.shot-main img').src = t.querySelector('img').src;
+    shot.querySelector('.shot-main').dataset.img = t.dataset.img;
+    shot.querySelectorAll('.shot-th button').forEach(x => x.setAttribute('aria-current', x === t)); };
+  t.addEventListener('mouseenter', swap); t.addEventListener('focus', swap);
+});
+
+addEventListener('keydown', e => {
+  if (e.key === 'Escape') return hide();
+  if (current) return;
+  if (narrow()) return;
+  if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); go(cur+1); }
+  if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); go(cur-1); }
+});
+/* CV download: plain link on a normal host; inside the Claude viewer use the downloads capability */
+let dlApi = null;
+if (window.claude && claude.use) claude.use('downloads').then(d => { dlApi = d; }).catch(() => {});
+document.addEventListener('click', async e => {
+  const a = e.target.closest('a[download]'); if (!a || !dlApi) return;
+  e.preventDefault();
+  try {
+    const blob = await (await fetch(a.getAttribute('href'))).blob();
+    await dlApi.save({ filename: a.getAttribute('download') || 'CV.pdf', data: blob });
+  } catch (err) {
+    if (err && err.code === 'declined') return;
+    window.open(a.href, '_blank');
+  }
+});
+
+
+</script>
+</body>
+</html>
