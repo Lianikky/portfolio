@@ -571,7 +571,7 @@ function fillCase(i){
   $('#pm-meta').innerHTML = c.meta.map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
   $('#pm-link').href = c.link || '#'; $('#pm-link').hidden = !c.link;
   $('#pm-next-t').textContent = CASES[(i+1)%CASES.length].title;
-  $('#strip').innerHTML = (c.video ? `<figure class="vid"><video autoplay muted loop playsinline poster="${c.imgs[0]}"><source src="${c.video.webm}" type="video/webm"><source src="${c.video.mp4}" type="video/mp4"></video><figcaption>reel · 12 сек</figcaption></figure>` : '') + c.imgs.slice(c.video ? 1 : 0).map((src,k,arr) => `<figure><img src="${src}" alt="${c.title}, изображение ${k+1} из ${arr.length}" loading="lazy"><figcaption>${pad(k+1)} / ${pad(arr.length)}</figcaption></figure>`).join('');
+  $('#strip').innerHTML = (c.video ? `<figure class="vid"><video autoplay muted loop playsinline poster="${c.imgs[0]}"><source src="${c.video.webm}" type="video/webm"><source src="${c.video.mp4}" type="video/mp4"></video><figcaption>reel · 15 сек</figcaption></figure>` : '') + c.imgs.slice(c.video ? 1 : 0).map((src,k,arr) => `<figure><img src="${src}" alt="${c.title}, изображение ${k+1} из ${arr.length}" loading="lazy"><figcaption>${pad(k+1)} / ${pad(arr.length)}</figcaption></figure>`).join('');
   $('.win-body').scrollTop = 0;
 }
 function openCase(i, k = 0){
