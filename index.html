@@ -364,6 +364,10 @@ mark{background:var(--fg);color:var(--bg)}
 @media (max-width:900px),(max-height:600px){ .strip img{max-height:none;width:100%} }
 .acts-row .ghost span{text-transform:none;letter-spacing:.02em}
 .acts-row .ghost[href^="https://t.me"] span,.acts-row .ghost[href*="notion"] span{text-transform:uppercase;letter-spacing:.06em}
+.shot .shot-main video{display:block;width:100%;max-width:100%;height:auto;max-height:calc(100vh - 340px);aspect-ratio:16/9;background:var(--bg)}
+.strip figure.vid video{display:block;width:100%;height:auto}
+@media (max-width:900px),(max-height:600px){ .shot .shot-main video{max-height:none} }
+@media (prefers-reduced-motion:reduce){ video.reel{display:none} video.reel+img[hidden]{display:block!important} }
 </style>
 
 </head>
@@ -460,6 +464,7 @@ const ALL_CASES = [
   { id:'pragmatica', title:'Pragmatica UI', kind:'UI · mobile', from:'06 2026', to:'08 2026', studio:'Большая практика Pragmatica',
     head:'UI-концепт приложения, где город открывается <mark>через двери</mark>: погода, места рядом и музыка заведения',
     imgs:['img/prag-1.webp','img/prag-home.webp','img/prag-place.webp'],
+    video:{ webm:'img/prag-reel-720.webm', mp4:'img/prag-reel-720.mp4' },
     lead:'UI-работа на Большой практике Pragmatica: экран «home» с погодой и каруселью дверей и экран «place» с карточкой заведения.',
     list:['Home: погода крупными цифрами (дождь, UV-индекс, закат) и прогноз на неделю.','Двери-карусель как навигация: «Knock to sneak a peek» ведёт к местам рядом.','Place: карточка кофейни с расстоянием, часами работы и ценой, превью треков заведения.','Крупные метрики и два действия внизу: «Another door» и «Go» с временем пешком.'],
     meta:[['роль','UI-дизайнер'],['где','Большая практика Pragmatica'],['задачи','UI, визуальный язык, иконки']],
@@ -498,8 +503,8 @@ CASES.forEach((c,i) => {
     </section>`);
   $('#right').insertAdjacentHTML('beforeend', `
     <div class="shot" data-pane="${i+1}" style="order:${(i+1)*2+1}">
-      <button class="shot-main" type="button" data-case="${i}" data-img="0" aria-label="Открыть кейс ${c.title}"><img src="${c.imgs[0]}" alt=""><span class="tag">${pad(i+1)} ${c.title}</span><span class="zoom">Открыть кейс +</span></button>
-      ${c.imgs.length > 1 ? `<div class="shot-th">${c.imgs.map((src,k) => `<button type="button" data-case="${i}" data-img="${k}" aria-label="Изображение ${k+1}"${k===0?' aria-current="true"':''}><img src="${src}" alt=""><span>${pad(k+1)}</span></button>`).join('')}</div>` : ''}
+      <button class="shot-main" type="button" data-case="${i}" data-img="0" aria-label="Открыть кейс ${c.title}">${c.video ? `<video class="reel" autoplay muted loop playsinline preload="auto" poster="${c.imgs[0]}"><source src="${c.video.webm}" type="video/webm"><source src="${c.video.mp4}" type="video/mp4"></video>` : ''}<img src="${c.imgs[0]}" alt=""${c.video ? ' hidden' : ''}><span class="tag">${pad(i+1)} ${c.title}</span><span class="zoom">Открыть кейс +</span></button>
+      ${c.imgs.length > 1 ? `<div class="shot-th">${c.imgs.map((src,k) => `<button type="button" data-case="${i}" data-img="${k}" aria-label="Изображение ${k+1}"${k===0?' aria-current="true"':''}><img src="${src}" alt=""><span>${k===0 && c.video ? '▶ reel' : pad(k+1)}</span></button>`).join('')}</div>` : ''}
     </div>`);
 });
 
@@ -566,7 +571,7 @@ function fillCase(i){
   $('#pm-meta').innerHTML = c.meta.map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
   $('#pm-link').href = c.link || '#'; $('#pm-link').hidden = !c.link;
   $('#pm-next-t').textContent = CASES[(i+1)%CASES.length].title;
-  $('#strip').innerHTML = c.imgs.map((src,k) => `<figure><img src="${src}" alt="${c.title}, изображение ${k+1} из ${c.imgs.length}" loading="lazy"><figcaption>${pad(k+1)} / ${pad(c.imgs.length)}</figcaption></figure>`).join('');
+  $('#strip').innerHTML = (c.video ? `<figure class="vid"><video autoplay muted loop playsinline poster="${c.imgs[0]}"><source src="${c.video.webm}" type="video/webm"><source src="${c.video.mp4}" type="video/mp4"></video><figcaption>reel · 9 сек</figcaption></figure>` : '') + c.imgs.slice(c.video ? 1 : 0).map((src,k,arr) => `<figure><img src="${src}" alt="${c.title}, изображение ${k+1} из ${arr.length}" loading="lazy"><figcaption>${pad(k+1)} / ${pad(arr.length)}</figcaption></figure>`).join('');
   $('.win-body').scrollTop = 0;
 }
 function openCase(i, k = 0){
@@ -576,7 +581,8 @@ function openCase(i, k = 0){
 $('#pm-next').addEventListener('click', () => { fillCase((ci+1) % CASES.length); go(ci+1); });
 /* hovering a thumb previews it in the big frame */
 document.querySelectorAll('.shot-th button').forEach(t => {
-  const swap = () => { const shot = t.closest('.shot'); shot.querySelector('.shot-main img').src = t.querySelector('img').src;
+  const swap = () => { const shot = t.closest('.shot'), img = shot.querySelector('.shot-main img'), v = shot.querySelector('.shot-main video');
+    const useV = v && t.dataset.img === '0'; if (v) { v.hidden = !useV; useV ? v.play().catch(()=>{}) : v.pause(); } img.hidden = useV; if (!useV) img.src = t.querySelector('img').src;
     shot.querySelector('.shot-main').dataset.img = t.dataset.img;
     shot.querySelectorAll('.shot-th button').forEach(x => x.setAttribute('aria-current', x === t)); };
   t.addEventListener('mouseenter', swap); t.addEventListener('focus', swap);
